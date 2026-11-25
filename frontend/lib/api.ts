@@ -1731,7 +1731,7 @@ export interface GoogleMeetBotSession {
   decision_id: number;
   meet_url: string;
   bot_name: string;
-  status: "connecting" | "active" | "transcribing" | "completed" | "failed";
+  status: "connecting" | "waiting_for_admission" | "in_call_capturing" | "active" | "transcribing" | "completed" | "left_call" | "failed" | string;
   language: string;
   recording_enabled: boolean;
   distraction_filtering_enabled: boolean;
@@ -1823,6 +1823,44 @@ export async function sendBotSpeechStream(
   });
 }
 
+/** Stream raw audio chunk (WebM/WAV) from Google Meet tab to backend STT */
+export async function sendBotAudioStream(
+  decisionId: number,
+  sessionId: number,
+  audioBlob: Blob,
+  speaker: string = "Speaker",
+  timestamp?: string,
+  language: string = "en"
+): Promise<GoogleMeetBotSession> {
+  const token = getStoredToken();
+  const formData = new FormData();
+  formData.append("file", audioBlob, "audio_chunk.webm");
+  formData.append("speaker", speaker);
+  if (timestamp) formData.append("timestamp", timestamp);
+  formData.append("language", language);
+
+  const url = `${API_BASE_URL}/api/decisions/${decisionId}/bot/sessions/${sessionId}/audio-stream`;
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Audio stream failed with status ${response.status}`;
+    try {
+      const err = await response.json();
+      if (err.detail) errorDetail = err.detail;
+    } catch {}
+    throw new Error(errorDetail);
+  }
+  return response.json();
+}
+
 /** Send private message to the bot as an authenticated participant */
 export async function sendPrivateChatMessage(
   decisionId: number,
@@ -1851,6 +1889,19 @@ export async function getPrivateChatMessages(
   sessionId: number
 ): Promise<PrivateChatMessage[]> {
   return fetchApi<PrivateChatMessage[]>(`/api/decisions/${decisionId}/bot/sessions/${sessionId}/private-chat`);
+}
+
+/** Instruct DecisionLens Bot to leave Google Meet call without triggering full analysis */
+export async function leaveGoogleMeetBot(
+  decisionId: number,
+  sessionId: number
+): Promise<GoogleMeetBotSession> {
+  return fetchApi<GoogleMeetBotSession>(
+    `/api/decisions/${decisionId}/bot/sessions/${sessionId}/leave`,
+    {
+      method: "POST",
+    }
+  );
 }
 
 /** Finish Google Meet call, filter distractions, and execute DecisionLens analysis */

@@ -257,9 +257,19 @@ def add_private_chat_message(
         created_at=now,
     )
     db.add(private_input)
+
+    # If author is project owner / CEO or explicit owner guidance, ensure it is directly persisted in decision description
+    if author_role in ("Decision Owner", "Decision Owner / Executive", "Project Owner", "CEO"):
+        owner_entry = f"\n\n[Project Owner Guidance | {norm_cat.upper()}]: {clean_msg}"
+        if owner_entry.strip() not in (decision.description or ""):
+            decision.description = ((decision.description or "").strip() + owner_entry).strip()
+            db.add(decision)
+
     db.commit()
     db.refresh(private_input)
-    logger.info("Saved private input id=%s for decision=%s (cat=%s)", private_input.id, decision.id, norm_cat)
+    if decision in db:
+        db.refresh(decision)
+    logger.info("Saved private input id=%s for decision=%s (role=%s, cat=%s)", private_input.id, decision.id, author_role, norm_cat)
     return private_input
 
 

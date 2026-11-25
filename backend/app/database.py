@@ -89,74 +89,22 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def init_db() -> None:
-    """Create all database tables and ensure SQLite schema migrations with graceful fallback."""
+    """Create all database tables on Supabase PostgreSQL and ensure schema migrations."""
     global engine, SessionLocal, is_sqlite
     import app.models  # noqa: F401 - ensure models are registered on Base.metadata
 
+    logger.info("Initializing database on active Supabase PostgreSQL cluster...")
+    Base.metadata.create_all(bind=engine)
+
+    # Apply incremental column additions for PostgreSQL/Supabase
     try:
-        Base.metadata.create_all(bind=engine)
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS fault_lines JSONB DEFAULT '{}'::jsonb;"))
+            conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS domain_source VARCHAR(50) DEFAULT 'manual';"))
+            conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS domain_confidence FLOAT DEFAULT 1.0;"))
+            conn.commit()
+            logger.info("Supabase PostgreSQL schema verified successfully.")
     except Exception as exc:
-        logger.error(f"Failed to connect to primary database ({exc}). Falling back to local SQLite.")
-        sqlite_url = "sqlite:///./decisionlens.db"
-        is_sqlite = True
-        engine = create_engine(sqlite_url, connect_args={"check_same_thread": False})
-        SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False)
-        Base.metadata.create_all(bind=engine)
+        logger.debug(f"Postgres incremental column check skipped: {exc}")
 
-    # Apply incremental column additions for PostgreSQL/Supabase and SQLite development
-    if not is_sqlite:
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS fault_lines JSONB DEFAULT '{}'::jsonb;"))
-                conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS domain_source VARCHAR(50) DEFAULT 'manual';"))
-                conn.execute(text("ALTER TABLE decisions ADD COLUMN IF NOT EXISTS domain_confidence FLOAT DEFAULT 1.0;"))
-                conn.commit()
-        except Exception as exc:
-            logger.debug(f"Postgres incremental column check skipped: {exc}")
 
-    if is_sqlite:
-        try:
-            with engine.connect() as conn:
-                # Check users columns
-                user_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(users);")).fetchall()]
-                if "oauth_provider" not in user_cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN oauth_provider VARCHAR(50);"))
-                if "avatar_url" not in user_cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500);"))
-                if "display_name" not in user_cols:
-                    conn.execute(text("ALTER TABLE users ADD COLUMN display_name VARCHAR(150);"))
-
-                # Check folders columns
-                folder_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(folders);")).fetchall()]
-                if "color" not in folder_cols:
-                    conn.execute(text("ALTER TABLE folders ADD COLUMN color VARCHAR(30) DEFAULT '#4F46E5';"))
-                if "domain" not in folder_cols:
-                    conn.execute(text("ALTER TABLE folders ADD COLUMN domain VARCHAR(50);"))
-                if "updated_at" not in folder_cols:
-                    conn.execute(text("ALTER TABLE folders ADD COLUMN updated_at DATETIME;"))
-
-                # Check decisions columns
-                decision_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(decisions);")).fetchall()]
-                if "problem_statement" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN problem_statement TEXT DEFAULT '';"))
-                if "record_type" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN record_type VARCHAR(30) DEFAULT 'decision';"))
-                if "points_reviewed" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN points_reviewed BOOLEAN DEFAULT 0;"))
-                if "domain" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN domain VARCHAR(50) DEFAULT 'AUTO';"))
-                if "domain_source" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN domain_source VARCHAR(50) DEFAULT 'manual';"))
-                if "domain_confidence" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN domain_confidence FLOAT DEFAULT 1.0;"))
-                if "fault_lines" not in decision_cols:
-                    conn.execute(text("ALTER TABLE decisions ADD COLUMN fault_lines JSON DEFAULT '{}';"))
-
-                # Check attachments columns
-                attach_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(attachments);")).fetchall()]
-                if "file_size" not in attach_cols:
-                    conn.execute(text("ALTER TABLE attachments ADD COLUMN file_size INTEGER DEFAULT 0;"))
-
-                conn.commit()
-        except Exception:
-            pass

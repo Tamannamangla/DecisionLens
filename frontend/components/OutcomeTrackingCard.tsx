@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Star, CheckCircle2, Clock, Plus } from "lucide-react";
 import {
   DecisionOutcome,
   DecisionOutcomeCreate,
@@ -86,9 +87,9 @@ export default function OutcomeTrackingCard({
           : chosenOption.trim() || "Alternative Path";
 
       const metricsSummary = [
-        targetMetrics.slaMet ? "✓ Performance SLA Met" : "⚠ Performance SLA Missed",
-        targetMetrics.budgetHeld ? "✓ Budget & Cost Target Maintained" : "⚠ Cloud Budget Overrun",
-        targetMetrics.sreLoadManageable ? "✓ SRE/Team Load Manageable" : "⚠ Elevated Operational Drag",
+        targetMetrics.slaMet ? "Performance SLA Met" : "Performance SLA Missed",
+        targetMetrics.budgetHeld ? "Budget & Cost Target Maintained" : "Cloud Budget Overrun",
+        targetMetrics.sreLoadManageable ? "SRE/Team Load Manageable" : "Elevated Operational Drag",
       ].join(" • ");
 
       const retroText = lessonsLearned.trim() || whatWorked.trim();
@@ -157,7 +158,7 @@ export default function OutcomeTrackingCard({
           }}
           className="px-3.5 py-1.5 bg-[#1d1d1b] hover:bg-[#443a30] text-[#F4F0E6] text-xs font-bold uppercase tracking-wider rounded-sm transition-colors flex items-center justify-center gap-1.5 shadow-xs"
         >
-          <span>★</span>
+          <Plus className="w-3.5 h-3.5" />
           <span>{latest ? "Log Follow-Up Check-in" : "Log Decision Outcome"}</span>
         </button>
       </div>
@@ -177,11 +178,16 @@ export default function OutcomeTrackingCard({
         <div className="bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] rounded-sm p-5 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#D9D2C3]">
             <div className="flex items-center gap-3">
-              <div className="flex text-amber-500 text-sm">
+              <div className="flex items-center text-amber-500 gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <span key={star}>
-                    {star <= latest.utility_rating ? "★" : "☆"}
-                  </span>
+                  <Star
+                    key={star}
+                    className={`w-3.5 h-3.5 ${
+                      star <= latest.utility_rating
+                        ? "fill-amber-500 text-amber-500"
+                        : "text-stone-300 dark:text-stone-600"
+                    }`}
+                  />
                 ))}
               </div>
               <span className="text-xs font-bold text-[#26211b]">
@@ -244,7 +250,7 @@ export default function OutcomeTrackingCard({
                     key={i}
                     className="text-[14px] px-2 py-0.5 bg-rose-50 border border-rose-200 text-rose-700 rounded"
                   >
-                    ⚠ {c}
+                    {c}
                   </span>
                 ))}
               </div>
@@ -266,8 +272,8 @@ export default function OutcomeTrackingCard({
       ) : (
         /* Empty Prompt Banner */
         <div className="bg-[#EDE7D6] dark:bg-[#221F1C] border border-dashed border-[#cfc7b2] dark:border-[#38332C] rounded-sm p-6 text-center">
-          <div className="w-8 h-8 rounded-full bg-[#EFEADF] text-[#6e655a] flex items-center justify-center mx-auto mb-2 text-sm font-bold">
-            ★
+          <div className="w-8 h-8 rounded-full bg-[#EFEADF] dark:bg-[#2C2723] text-[#6e655a] dark:text-[#D4AA50] flex items-center justify-center mx-auto mb-2">
+            <Clock className="w-4 h-4" />
           </div>
           <h4 className="text-sm font-bold text-[#26211b] mb-1">
             No Real-World Outcome Recorded Yet
@@ -319,10 +325,10 @@ export default function OutcomeTrackingCard({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: "implemented_as_recommended", label: "✓ Implemented as Recommended" },
-                    { id: "pivoted_to_alternative", label: "⇄ Pivoted to Alternative" },
-                    { id: "delayed", label: "⏳ In Progress / Delayed" },
-                    { id: "abandoned", label: "✕ Cancelled / Abandoned" },
+                    { id: "implemented_as_recommended", label: "Implemented as Recommended" },
+                    { id: "pivoted_to_alternative", label: "Pivoted to Alternative" },
+                    { id: "delayed", label: "In Progress / Delayed" },
+                    { id: "abandoned", label: "Cancelled / Abandoned" },
                   ].map((s) => (
                     <button
                       key={s.id}
@@ -392,11 +398,11 @@ export default function OutcomeTrackingCard({
                 </label>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {[
-                    { days: 14, label: "⚡ 14d Spike Check" },
-                    { days: 30, label: "📅 30d Pilot Check" },
-                    { days: 60, label: "📊 60d Mid-Term" },
-                    { days: 90, label: "🏛️ 90d Quarterly Audit" },
-                    { days: 180, label: "🗓️ 180d Long-Term" },
+                    { days: 14, label: "14d Spike Check" },
+                    { days: 30, label: "30d Pilot Check" },
+                    { days: 60, label: "60d Mid-Term" },
+                    { days: 90, label: "90d Quarterly Audit" },
+                    { days: 180, label: "180d Long-Term" },
                   ].map((h) => (
                     <button
                       key={h.days}
@@ -421,10 +427,10 @@ export default function OutcomeTrackingCard({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { rating: 5, label: "🎯 Exceeded Targets", desc: "Outperformed SLAs & cost goals" },
-                    { rating: 4, label: "✅ Met Expectations", desc: "Core planned objectives achieved" },
-                    { rating: 3, label: "⚠️ Mixed / Partial", desc: "Worked, but created technical drag" },
-                    { rating: 2, label: "❌ Underperformed", desc: "Missed targets or caused outages" },
+                    { rating: 5, label: "Exceeded Targets", desc: "Outperformed SLAs & cost goals" },
+                    { rating: 4, label: "Met Expectations", desc: "Core planned objectives achieved" },
+                    { rating: 3, label: "Mixed / Partial", desc: "Worked, but created technical drag" },
+                    { rating: 2, label: "Underperformed", desc: "Missed targets or caused outages" },
                   ].map((v) => (
                     <button
                       key={v.rating}
@@ -463,7 +469,7 @@ export default function OutcomeTrackingCard({
                         : "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
                     }`}
                   >
-                    <span className="text-xs block">{targetMetrics.slaMet ? "✓ Latency SLA Met" : "✕ Latency SLA Missed"}</span>
+                    <span className="text-xs block">{targetMetrics.slaMet ? "Latency SLA Met" : "Latency SLA Missed"}</span>
                     <span className="text-[15px] font-mono opacity-80">sub-50ms p99 Target</span>
                   </button>
 
@@ -476,7 +482,7 @@ export default function OutcomeTrackingCard({
                         : "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
                     }`}
                   >
-                    <span className="text-xs block">{targetMetrics.budgetHeld ? "✓ Cloud Budget Held" : "✕ Budget Overrun"}</span>
+                    <span className="text-xs block">{targetMetrics.budgetHeld ? "Cloud Budget Held" : "Budget Overrun"}</span>
                     <span className="text-[15px] font-mono opacity-80">Zero Infra Surprise</span>
                   </button>
 
@@ -489,7 +495,7 @@ export default function OutcomeTrackingCard({
                         : "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
                     }`}
                   >
-                    <span className="text-xs block">{targetMetrics.sreLoadManageable ? "✓ SRE Load Safe" : "✕ High SRE Fatigue"}</span>
+                    <span className="text-xs block">{targetMetrics.sreLoadManageable ? "SRE Load Safe" : "High SRE Fatigue"}</span>
                     <span className="text-[15px] font-mono opacity-80">3-Person SRE Team</span>
                   </button>
                 </div>

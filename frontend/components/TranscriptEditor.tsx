@@ -325,13 +325,13 @@ export default function TranscriptEditor({
                   }
                   className="w-full text-xs font-courier font-bold bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C] rounded-none py-1.5 px-2 text-[#1d1d1b] dark:text-[#F0EAE1] focus:border-[#7a4e10] dark:focus:border-[#D4AA50] focus:outline-none transition-colors"
                 >
-                  <option value="Lead Architect">🏛️ Lead Architect / Tech Lead</option>
-                  <option value="DevOps / Cloud SRE">⚙️ DevOps / Cloud SRE</option>
-                  <option value="Security & Compliance">🔒 Security & Compliance</option>
-                  <option value="Product Manager">💼 Product Manager / Business</option>
-                  <option value="Backend Engineer">💻 Backend Engineer</option>
-                  <option value="Frontend Engineer">🎨 Frontend / Mobile Lead</option>
-                  <option value="QA / Reliability">🧪 QA / Reliability Lead</option>
+                  <option value="Lead Architect">Lead Architect / Tech Lead</option>
+                  <option value="DevOps / Cloud SRE">DevOps / Cloud SRE</option>
+                  <option value="Security & Compliance">Security & Compliance</option>
+                  <option value="Product Manager">Product Manager / Business</option>
+                  <option value="Backend Engineer">Backend Engineer</option>
+                  <option value="Frontend Engineer">Frontend / Mobile Lead</option>
+                  <option value="QA / Reliability">QA / Reliability Lead</option>
                 </select>
               </div>
             ))}

@@ -603,16 +603,16 @@ export default function Sidebar({
                     onChange={(e) => setNewFolderDomain(e.target.value)}
                     className="w-full px-3 py-2 text-[15px] bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C] rounded-sm text-[#1d1d1b] dark:text-[#F0EAE1] focus:border-[#443a30] dark:focus:border-[#D4AA50] focus:ring-2 focus:ring-[#443a30]/25 focus:outline-none transition-colors cursor-pointer"
                   >
-                    <option value="AUTO">⚡ Auto-Detect from Content (Recommended)</option>
-                    <option value="SOFTWARE">💻 Software Engineering & Cloud Infrastructure</option>
-                    <option value="BUSINESS">🏢 Enterprise Strategy & Corporate Deliberation</option>
-                    <option value="PRODUCT">🚀 Product Strategy & Growth Experiments</option>
-                    <option value="FINANCE">📈 Finance, Capital Allocation & Treasury</option>
-                    <option value="REAL_ESTATE">🏛️ Real Estate, Land & Property Acquisition</option>
-                    <option value="CAREER">👔 Executive Career & Leadership Hiring</option>
-                    <option value="OPERATIONS">📦 Operations, Logistics & Supply Chain</option>
-                    <option value="EDUCATION">🎓 Education & Academic Research</option>
-                    <option value="PERSONAL">🌱 Personal Life & Habit Changes</option>
+                    <option value="AUTO">Auto-Detect from Content (Recommended)</option>
+                    <option value="SOFTWARE">Software Engineering & Cloud Infrastructure</option>
+                    <option value="BUSINESS">Enterprise Strategy & Corporate Deliberation</option>
+                    <option value="PRODUCT">Product Strategy & Growth Experiments</option>
+                    <option value="FINANCE">Finance, Capital Allocation & Treasury</option>
+                    <option value="REAL_ESTATE">Real Estate, Land & Property Acquisition</option>
+                    <option value="CAREER">Executive Career & Leadership Hiring</option>
+                    <option value="OPERATIONS">Operations, Logistics & Supply Chain</option>
+                    <option value="EDUCATION">Education & Academic Research</option>
+                    <option value="PERSONAL">Personal Life & Habit Changes</option>
                   </select>
                   <p className="text-[15px] text-[#97907e] dark:text-[#A89F91] mt-1 font-courier">
                     Pre-calibrates evaluation criteria and prevents technical jargon ambiguity across deliberations.

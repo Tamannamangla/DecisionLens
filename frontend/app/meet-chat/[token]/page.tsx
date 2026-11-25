@@ -154,9 +154,9 @@ export default function PublicMeetChatPage({
           </h1>
 
           <p className="text-[12px] text-[#6e655a] dark:text-[#A89F91] leading-relaxed">
-            You are speaking privately with the DecisionLens bot attending this call.
-            Share reasons, technical facts, unmentioned constraints, or doubts you hesitated to speak about in the meeting.
-            The bot will synthesize your input into the architecture trade-offs without revealing who you are.
+            Submit confidential project evidence and technical facts directly to the DecisionLens Scribe for this decision project.
+            The AI synthesizes all stakeholder inputs into architectural trade-offs without revealing personal identities.
+            This is project evidence stored directly on the decision record, NOT a direct message to the CEO or any call attendee.
           </p>
         </div>
 

@@ -1,7 +1,10 @@
 import logging
+import os
+import tempfile
+from pathlib import Path
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -17,6 +20,7 @@ from app.schemas import (
     PrivateChatMessageResponse,
     PublicBotInviteInfo,
 )
+from app.services.audio import transcribe_audio_file
 from app.services.meeting_bot import (
     add_private_chat_message,
     create_or_join_bot_session,
@@ -93,11 +97,25 @@ def join_google_meet(
             db=db,
             decision=decision,
             meet_url=req.meet_url,
-            bot_name=req.bot_name or "DecisionLens Bot",
+            bot_name=req.bot_name or "DecisionLens AI Scribe",
             language=req.language or "en",
             recording_enabled=req.recording_enabled if req.recording_enabled is not None else True,
             distraction_filtering=req.distraction_filtering if req.distraction_filtering is not None else True,
         )
+
+        # Dispatch autonomous Playwright headless bot
+        try:
+            from app.services.meeting_bot_runner import start_meet_bot_background
+            start_meet_bot_background(
+                session_id=session.id,
+                decision_id=decision.id,
+                meet_url=req.meet_url,
+                bot_name=req.bot_name or "DecisionLens AI Scribe",
+            )
+            logger.info("Spawned autonomous Playwright meeting bot for session=%s", session.id)
+        except Exception as bot_err:
+            logger.warning("Could not spawn background Playwright bot runner: %s", bot_err)
+
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
@@ -186,6 +204,73 @@ def stream_speech(
 
 
 @router.post(
+    "/decisions/{decision_id}/bot/sessions/{session_id}/audio-stream",
+    response_model=GoogleMeetBotSessionResponse,
+    summary="Stream raw audio chunk (WebM/WAV) from Google Meet tab, transcribe, and ingest into bot session",
+)
+async def stream_audio_chunk(
+    decision_id: int,
+    session_id: int,
+    file: UploadFile = File(...),
+    speaker: str = Form("Speaker"),
+    timestamp: Optional[str] = Form(None),
+    language: str = Form("en"),
+    force_mock: bool = Form(False),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    decision = db.get(Decision, decision_id)
+    if not decision:
+        raise HTTPException(status_code=404, detail="Decision not found")
+
+    verify_ownership(decision.owner_id, current_user.id, resource_name="Decision")
+
+    session = db.get(GoogleMeetBotSession, session_id)
+    if not session or session.decision_id != decision_id:
+        raise HTTPException(status_code=404, detail="Bot session not found")
+
+    content = await file.read()
+    if not content or len(content) < 500:
+        return _to_session_response(session, db)
+
+    ext = ".webm"
+    if file.filename and "." in file.filename:
+        ext = f".{file.filename.rsplit('.', 1)[-1].lower()}"
+
+    temp_file = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
+    try:
+        temp_file.write(content)
+        temp_file.flush()
+        temp_file.close()
+
+        transcribed_text = transcribe_audio_file(
+            audio_path=Path(temp_file.name),
+            language=language or "en",
+            force_mock=force_mock,
+        )
+
+        clean_text = (transcribed_text or "").strip()
+        if clean_text:
+            session = ingest_speech_chunk(
+                db=db,
+                session=session,
+                text=clean_text,
+                speaker=speaker or "Speaker",
+                timestamp=timestamp,
+            )
+    except Exception as exc:
+        logger.warning("Error processing audio chunk in meeting session %s: %s", session_id, exc)
+    finally:
+        try:
+            if os.path.exists(temp_file.name):
+                os.unlink(temp_file.name)
+        except Exception:
+            pass
+
+    return _to_session_response(session, db)
+
+
+@router.post(
     "/decisions/{decision_id}/bot/sessions/{session_id}/private-chat",
     response_model=PrivateChatMessageResponse,
     status_code=status.HTTP_201_CREATED,
@@ -207,9 +292,15 @@ def post_private_chat_message(
     if not session or session.decision_id != decision_id:
         raise HTTPException(status_code=404, detail="Bot session not found")
 
-    author_name = current_user.display_name or current_user.email or "Participant"
-    if req.is_anonymous:
-        author_name = "Anonymous"
+    is_owner = (current_user.id == decision.owner_id)
+    if is_owner:
+        author_role = req.author_role or "Decision Owner / Executive"
+        author_name = current_user.display_name or "Project Owner"
+        is_anon = False
+    else:
+        author_role = req.author_role or "Participant"
+        author_name = "Anonymous" if req.is_anonymous else (current_user.display_name or current_user.email or "Participant")
+        is_anon = req.is_anonymous if req.is_anonymous is not None else True
 
     msg = add_private_chat_message(
         db=db,
@@ -217,9 +308,9 @@ def post_private_chat_message(
         session=session,
         message=req.message,
         author_name=author_name,
-        author_role=req.author_role or "Participant",
-        is_anonymous=req.is_anonymous if req.is_anonymous is not None else True,
-        category=req.category or "concern",
+        author_role=author_role,
+        is_anonymous=is_anon,
+        category=req.category or ("constraint" if is_owner else "concern"),
         impact_level=req.impact_level or "high",
         force_mock=force_mock,
     )
@@ -287,6 +378,39 @@ def get_private_chat_messages(
 
 
 @router.post(
+    "/decisions/{decision_id}/bot/sessions/{session_id}/leave",
+    response_model=GoogleMeetBotSessionResponse,
+    summary="Instruct DecisionLens Bot to leave the Google Meet call",
+)
+def leave_google_meet(
+    decision_id: int,
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    decision = db.get(Decision, decision_id)
+    if not decision:
+        raise HTTPException(status_code=404, detail="Decision not found")
+
+    verify_ownership(decision.owner_id, current_user.id, resource_name="Decision")
+
+    session = db.get(GoogleMeetBotSession, session_id)
+    if not session or session.decision_id != decision_id:
+        raise HTTPException(status_code=404, detail="Bot session not found")
+
+    try:
+        from app.services.meeting_bot_runner import stop_meet_bot_sync
+        stop_meet_bot_sync(session.id)
+    except Exception as exc:
+        logger.warning("Could not signal Playwright bot to leave: %s", exc)
+
+    session.status = "left_call"
+    db.commit()
+    db.refresh(session)
+    return _to_session_response(session, db)
+
+
+@router.post(
     "/decisions/{decision_id}/bot/sessions/{session_id}/finish-and-analyze",
     response_model=BotFinishAndAnalyzeResponse,
     summary="Finish Google Meet bot session, scrub tangents, and execute DecisionLens cognitive analysis",
@@ -307,6 +431,12 @@ def finish_meeting_and_analyze(
     session = db.get(GoogleMeetBotSession, session_id)
     if not session or session.decision_id != decision_id:
         raise HTTPException(status_code=404, detail="Bot session not found")
+
+    try:
+        from app.services.meeting_bot_runner import stop_meet_bot_sync
+        stop_meet_bot_sync(session.id)
+    except Exception as exc:
+        logger.warning("Could not stop background Playwright bot: %s", exc)
 
     result = finish_bot_session_and_analyze(
         db=db,

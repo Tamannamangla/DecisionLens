@@ -717,9 +717,9 @@ jobs:
 
       - name: Inspect Modified Infrastructure & Database Queries
         run: |
-          echo "🛡️ DecisionLens Guard: Inspecting PR against accepted architectural decisions..."
-          echo "📋 Checking active ADRs in docs/adr/ or .adr/ directory..."
-          echo "✅ Verified: No undeclared database connection starvation or bypassed caching layers detected."
+          echo "[DecisionLens Guard] Inspecting PR against accepted architectural decisions..."
+          echo "[DecisionLens Guard] Checking active ADRs in docs/adr/ or .adr/ directory..."
+          echo "[DecisionLens Guard] Verified: No undeclared database connection starvation or bypassed caching layers detected."
 
       - name: Post ADR Compliance Badge
         run: |

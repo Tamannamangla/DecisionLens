@@ -209,6 +209,17 @@ def test_meeting_bot_api_endpoints(client, registered_user):
     assert stream_resp.status_code == 200
     assert "Cloudflare Workers" in stream_resp.json()["raw_transcript"]
 
+    # 2b. Stream audio chunk (Option B: In-Browser meeting audio capture)
+    fake_audio_bytes = b"RIFF" + b"\x00" * 1000  # Minimum length > 500 bytes
+    audio_stream_resp = client.post(
+        f"/api/decisions/{decision_id}/bot/sessions/{session_id}/audio-stream",
+        files={"file": ("chunk.wav", fake_audio_bytes, "audio/wav")},
+        data={"speaker": "Database Lead", "language": "en", "force_mock": "true"},
+        headers=auth_headers,
+    )
+    assert audio_stream_resp.status_code == 200
+    assert len(audio_stream_resp.json()["raw_transcript"]) > 0
+
     # 3. Public participant joins private chat using invite token (No auth required!)
     invite_info_resp = client.get(f"/api/bot/invite/{token}")
     assert invite_info_resp.status_code == 200
@@ -233,7 +244,15 @@ def test_meeting_bot_api_endpoints(client, registered_user):
     assert len(history_resp.json()) == 1
     assert history_resp.json()[0]["author_role"] == "FinOps / Finance"
 
-    # 5. Finish meeting & analyze
+    # 5. Test leave endpoint
+    leave_resp = client.post(
+        f"/api/decisions/{decision_id}/bot/sessions/{session_id}/leave",
+        headers=auth_headers,
+    )
+    assert leave_resp.status_code == 200
+    assert leave_resp.json()["status"] == "left_call"
+
+    # 6. Finish meeting & analyze
     finish_resp = client.post(
         f"/api/decisions/{decision_id}/bot/sessions/{session_id}/finish-and-analyze?force_mock=true",
         headers=auth_headers,
@@ -244,3 +263,25 @@ def test_meeting_bot_api_endpoints(client, registered_user):
     assert finish_data["private_inputs_count"] == 1
     assert "Cloudflare Workers" in finish_data["transcript"]
     assert finish_data["structured_findings"] is not None
+
+
+def test_meet_bot_controller_lifecycle():
+    from app.services.meeting_bot_runner import MeetBotController, stop_meet_bot_sync
+    import asyncio
+
+    controller = MeetBotController(
+        session_id=999,
+        decision_id=123,
+        meet_url="https://meet.google.com/abc-defg-hij",
+        bot_name="DecisionLens AI Scribe",
+    )
+    assert controller.session_id == 999
+    assert controller.is_running is True
+    assert controller.bot_name == "DecisionLens AI Scribe"
+
+    # Run stop
+    asyncio.run(controller.stop())
+    assert controller.is_running is False
+
+    # Sync stop helper
+    stop_meet_bot_sync(999)

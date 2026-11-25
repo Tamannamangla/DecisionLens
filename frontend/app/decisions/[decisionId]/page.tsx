@@ -55,6 +55,7 @@ import {
   Sparkles,
   Loader2,
   ChevronRight,
+  Video,
 } from "lucide-react";
 
 export default function DecisionDetailPage({
@@ -87,7 +88,9 @@ export default function DecisionDetailPage({
   const [workflowStage, setWorkflowStage] = useState<WorkflowStage>("ingestion");
   const [viewMode, setViewMode] = useState<"step" | "all">("step");
   const [viewTrack, setViewTrack] = useState<"express" | "deep">("deep");
-  const [ingestionTab, setIngestionTab] = useState<"meeting" | "voice" | "docs" | "context">("context");
+  const [ingestionTab, setIngestionTab] = useState<"meeting" | "context">("meeting");
+  const [showSpecsUploader, setShowSpecsUploader] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const [stageManuallySelected, setStageManuallySelected] = useState(false);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -273,7 +276,7 @@ export default function DecisionDetailPage({
       if (attsRes.status === "fulfilled") {
         setAttachments(attsRes.value);
         if (attsRes.value.length > 0 && (!d.transcript || !d.transcript.trim()) && !stageManuallySelected) {
-          setIngestionTab("docs");
+          setShowSpecsUploader(true);
         }
       }
     } catch (err: unknown) {
@@ -566,9 +569,39 @@ export default function DecisionDetailPage({
                       </p>
                     </div>
 
-                    {/* 3 Clear, Mutually-Exclusive Modality Selector Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-courier">
-                      {/* Option 1: Written Notes */}
+                    {/* 2 Primary Mode Options: 1. Google Meet Autonomous Bot (Hero First), 2. Written Notes & Context */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-courier">
+                      {/* Option 1: Google Meet Autonomous Bot (Big Hero Option First) */}
+                      <button
+                        type="button"
+                        onClick={() => setIngestionTab("meeting")}
+                        className={`p-4 text-left border rounded-none transition-all cursor-pointer ${
+                          ingestionTab === "meeting"
+                            ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614] border-[#1d1d1b] dark:border-[#D4AA50] shadow-sm"
+                            : "bg-[#F4F0E6] dark:bg-[#181614] text-[#1d1d1b] dark:text-[#F0EAE1] border-[#cfc7b2] dark:border-[#38332C] hover:border-[#7a4e10] dark:hover:border-[#D4AA50]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                            <Video className="w-4 h-4" />
+                            Google Meet Autonomous Bot
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-none font-mono ${
+                              ingestionTab === "meeting"
+                                ? "bg-[#F4F0E6] text-[#181614] dark:bg-[#181614] dark:text-[#D4AA50]"
+                                : "bg-[#E5DEC9] text-[#7a4e10] dark:bg-[#2C2723] dark:text-[#D4AA50]"
+                            }`}
+                          >
+                            Primary Intake
+                          </span>
+                        </div>
+                        <p className="text-[13px] opacity-75 leading-snug">
+                          Autonomous AI Scribe joins your Google Meet call, transcribes discussions live, and captures confidential inputs.
+                        </p>
+                      </button>
+
+                      {/* Option 2: Written Notes & Context */}
                       <button
                         type="button"
                         onClick={() => setIngestionTab("context")}
@@ -580,136 +613,166 @@ export default function DecisionDetailPage({
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                            <FileText className="w-3.5 h-3.5" />
-                            Written Notes
+                            <FileText className="w-4 h-4" />
+                            Written Notes & Context
                           </span>
-                          {description.trim() ? (
+                          {description.trim() || attachments.length > 0 ? (
                             <span
-                              className={`text-[14px] font-bold uppercase px-1.5 py-0.2 rounded-none ${
+                              className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-none font-mono ${
                                 ingestionTab === "context"
                                   ? "bg-[#F4F0E6] text-[#181614] dark:bg-[#181614] dark:text-[#D4AA50]"
                                   : "bg-[#E5DEC9] text-[#7a4e10] dark:bg-[#2C2723] dark:text-[#D4AA50]"
                               }`}
                             >
-                              Filled
+                              Active
                             </span>
                           ) : null}
                         </div>
-                        <p className="text-[15px] opacity-75 leading-snug">
-                          Add stakeholders, deadlines, budget limits, or known constraints.
-                        </p>
-                      </button>
-
-                      {/* Option 2: Attach Specs */}
-                      <button
-                        type="button"
-                        onClick={() => setIngestionTab("docs")}
-                        className={`p-4 text-left border rounded-none transition-all cursor-pointer ${
-                          ingestionTab === "docs"
-                            ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614] border-[#1d1d1b] dark:border-[#D4AA50] shadow-sm"
-                            : "bg-[#F4F0E6] dark:bg-[#181614] text-[#1d1d1b] dark:text-[#F0EAE1] border-[#cfc7b2] dark:border-[#38332C] hover:border-[#7a4e10] dark:hover:border-[#D4AA50]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                            <Paperclip className="w-3.5 h-3.5" />
-                            Attach Specs
-                          </span>
-                          {attachments.length > 0 ? (
-                            <span
-                              className={`text-[14px] font-bold uppercase px-1.5 py-0.2 rounded-none ${
-                                ingestionTab === "docs"
-                                  ? "bg-[#F4F0E6] text-[#181614] dark:bg-[#181614] dark:text-[#D4AA50]"
-                                  : "bg-[#E5DEC9] text-[#7a4e10] dark:bg-[#2C2723] dark:text-[#D4AA50]"
-                              }`}
-                            >
-                              {attachments.length} {attachments.length === 1 ? "doc" : "docs"}
-                            </span>
-                          ) : null}
-                        </div>
-                        <p className="text-[15px] opacity-75 leading-snug">
-                          Upload architectural diagrams, PRDs, RFCs, or benchmark data.
-                        </p>
-                      </button>
-
-                      {/* Option 3: Voice & Call Sync */}
-                      <button
-                        type="button"
-                        onClick={() => setIngestionTab("voice")}
-                        className={`p-4 text-left border rounded-none transition-all cursor-pointer ${
-                          ingestionTab === "voice" || ingestionTab === "meeting"
-                            ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614] border-[#1d1d1b] dark:border-[#D4AA50] shadow-sm"
-                            : "bg-[#F4F0E6] dark:bg-[#181614] text-[#1d1d1b] dark:text-[#F0EAE1] border-[#cfc7b2] dark:border-[#38332C] hover:border-[#7a4e10] dark:hover:border-[#D4AA50]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                            <Mic className="w-3.5 h-3.5" />
-                            Voice & Meetings
-                          </span>
-                          {Boolean(decision.transcript) ? (
-                            <span
-                              className={`text-[14px] font-bold uppercase px-1.5 py-0.2 rounded-none ${
-                                ingestionTab === "voice" || ingestionTab === "meeting"
-                                  ? "bg-[#F4F0E6] text-[#181614] dark:bg-[#181614] dark:text-[#D4AA50]"
-                                  : "bg-[#E5DEC9] text-[#7a4e10] dark:bg-[#2C2723] dark:text-[#D4AA50]"
-                              }`}
-                            >
-                              Transcribed
-                            </span>
-                          ) : null}
-                        </div>
-                        <p className="text-[15px] opacity-75 leading-snug">
-                          Record spoken notes, upload an audio file, or sync a live meeting call.
+                        <p className="text-[13px] opacity-75 leading-snug">
+                          Enter dilemma constraints, attach specs, or record voice memos.
                         </p>
                       </button>
                     </div>
 
-                    {/* Active Expanded Context Area */}
+                    {/* Active Ingestion Viewport */}
                     <div className="pt-2">
-                      {/* Active Panel 1: Written Notes */}
-                      {ingestionTab === "context" && (
-                        <div className="space-y-3 animate-in fade-in duration-150">
-                          <div className="flex items-center justify-between">
-                            <label className="font-courier text-xs font-bold uppercase tracking-wider text-[#1d1d1b] dark:text-[#F0EAE1]">
-                              Background Notes, Constraints & Deadlines:
-                            </label>
-                            <SpeechDictationButton
-                              onTranscript={(text) =>
-                                setDescription((prev) => (prev ? `${prev} ${text}` : text))
+                      {/* OPTION 1 ACTIVE: Direct Google Meet Bot Studio */}
+                      {ingestionTab === "meeting" && (
+                        <div className="animate-in fade-in duration-150">
+                          <LiveMeetingRoom
+                            decisionId={decisionId}
+                            decisionTitle={title || decision.title}
+                            recordType={recordType}
+                            onFinishMeeting={async (data) => {
+                              if (data && data.transcript && data.transcript.trim()) {
+                                try {
+                                  await updateTranscript(decisionId, data.transcript.trim(), true);
+                                } catch (err) {
+                                  console.warn("Could not save live transcript:", err);
+                                }
                               }
-                              title="Dictate background notes"
-                            />
-                          </div>
-                          <textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            rows={4}
-                            placeholder={
-                              recordType === "meeting"
-                                ? "e.g. Participants: Product Lead, Eng Manager, Tech Lead. Pre-read: RFC #102..."
-                                : "Add initial notes, key stakeholders, technical constraints, budget limits, or known deadlines..."
-                            }
-                            className="w-full text-base font-newsreader bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C] rounded-none p-4 text-[#1d1d1b] dark:text-[#F0EAE1] placeholder-[#97907e] focus:border-[#7a4e10] dark:focus:border-[#D4AA50] focus:ring-1 focus:ring-[#7a4e10] focus:outline-none transition-colors leading-relaxed"
+                              if (data && data.notes && data.notes.length > 0) {
+                                const notesSummary = data.notes
+                                  .map((n) => `[${n.category.toUpperCase()}] ${n.content} (${n.isAnonymous ? "Anonymous" : n.author})`)
+                                  .join("\n");
+                                const updatedDesc = description
+                                  ? `${description}\n\n### Anonymous Meeting Risks & Constraints:\n${notesSummary}`
+                                  : `### Anonymous Meeting Risks & Constraints:\n${notesSummary}`;
+                                setDescription(updatedDesc);
+                                await updateDecision(decisionId, { description: updatedDesc });
+                              }
+                              await loadData(true);
+                              setWorkflowStage("structuring");
+                              setStageManuallySelected(true);
+                              setTimeout(() => {
+                                const elem = document.getElementById("deep-audit-section");
+                                if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
+                              }, 150);
+                            }}
                           />
                         </div>
                       )}
 
-                      {/* Active Panel 2: Reference Docs */}
-                      {ingestionTab === "docs" && (
-                        <div className="space-y-5 animate-in fade-in duration-150">
-                          <FileUploader
-                            decisionId={decisionId}
-                            onUploadSuccess={(att) => {
-                              setAttachments([att, ...attachments]);
-                              loadData();
-                            }}
-                          />
+                      {/* OPTION 2 ACTIVE: Written Notes & Context with 2 small options at bottom */}
+                      {ingestionTab === "context" && (
+                        <div className="space-y-4 animate-in fade-in duration-150">
+                          {/* Notes Textarea Box */}
+                          <div className="bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C] rounded-none p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <label className="font-courier text-xs font-bold uppercase tracking-wider text-[#1d1d1b] dark:text-[#F0EAE1]">
+                                Background Notes, Constraints & Deadlines:
+                              </label>
+                              <SpeechDictationButton
+                                onTranscript={(text) =>
+                                  setDescription((prev) => (prev ? `${prev} ${text}` : text))
+                                }
+                                title="Dictate background notes"
+                              />
+                            </div>
+
+                            <textarea
+                              value={description}
+                              onChange={(e) => setDescription(e.target.value)}
+                              rows={5}
+                              placeholder={
+                                recordType === "meeting"
+                                  ? "e.g. Participants: Product Lead, Eng Manager, Tech Lead. Pre-read: RFC #102..."
+                                  : "Add initial notes, key stakeholders, technical constraints, budget limits, or known deadlines..."
+                              }
+                              className="w-full text-base font-newsreader bg-transparent border-0 rounded-none p-0 text-[#1d1d1b] dark:text-[#F0EAE1] placeholder-[#97907e] focus:ring-0 focus:outline-none transition-colors leading-relaxed resize-y"
+                            />
+
+                            {/* Modern Bottom Toolbar with 2 Small Options for Upload & Record */}
+                            <div className="pt-3 border-t border-[#cfc7b2]/60 dark:border-[#38332C]/60 flex flex-wrap items-center justify-between gap-2 font-courier">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {/* Small Option 1: Attach Specs */}
+                                <button
+                                  type="button"
+                                  onClick={() => setShowSpecsUploader(!showSpecsUploader)}
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border rounded-none transition-colors cursor-pointer ${
+                                    showSpecsUploader || attachments.length > 0
+                                      ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614] border-[#1d1d1b] dark:border-[#D4AA50]"
+                                      : "bg-[#EDE7D6] dark:bg-[#221F1C] text-[#1d1d1b] dark:text-[#F0EAE1] border-[#cfc7b2] dark:border-[#38332C] hover:bg-[#E5DEC9]"
+                                  }`}
+                                  title="Upload architectural diagrams, PRDs, RFCs, or benchmark data"
+                                >
+                                  <Paperclip className="w-3.5 h-3.5" />
+                                  <span>Attach Specs {attachments.length > 0 ? `(${attachments.length})` : ""}</span>
+                                </button>
+
+                                {/* Small Option 2: Record Voice Memo */}
+                                <button
+                                  type="button"
+                                  onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider border rounded-none transition-colors cursor-pointer ${
+                                    showVoiceRecorder || Boolean(decision.transcript)
+                                      ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614] border-[#1d1d1b] dark:border-[#D4AA50]"
+                                      : "bg-[#EDE7D6] dark:bg-[#221F1C] text-[#1d1d1b] dark:text-[#F0EAE1] border-[#cfc7b2] dark:border-[#38332C] hover:bg-[#E5DEC9]"
+                                  }`}
+                                  title="Record spoken audio or upload audio file"
+                                >
+                                  <Mic className="w-3.5 h-3.5" />
+                                  <span>Record Voice Memo {decision.transcript ? "(Transcribed)" : ""}</span>
+                                </button>
+                              </div>
+
+                              <div className="text-[11px] text-[#6e655a] dark:text-[#A89F91]">
+                                {description.trim() ? `${description.trim().split(/\s+/).length} words` : "Empty notes"}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Collapsible File Upload Section */}
+                          {showSpecsUploader && (
+                            <div className="p-4 bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] rounded-none space-y-4 animate-in fade-in duration-150 font-courier">
+                              <div className="flex items-center justify-between pb-2 border-b border-[#cfc7b2]/60 dark:border-[#38332C]/60">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#7a4e10] dark:text-[#D4AA50] flex items-center gap-1.5">
+                                  <Paperclip className="w-3.5 h-3.5" />
+                                  Upload Technical Specs & Architecture Docs
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowSpecsUploader(false)}
+                                  className="text-xs text-[#6e655a] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1]"
+                                >
+                                  Close
+                                </button>
+                              </div>
+
+                              <FileUploader
+                                decisionId={decisionId}
+                                onUploadSuccess={(att) => {
+                                  setAttachments([att, ...attachments]);
+                                  loadData();
+                                }}
+                              />
+                            </div>
+                          )}
 
                           {/* Attachments List with Extracted Text Preview */}
                           {attachments.length > 0 && (
-                            <div className="space-y-3 pt-2">
-                              <h3 className="text-xs font-courier font-bold uppercase tracking-wider text-[#7a4e10] dark:text-[#D4AA50]">
+                            <div className="space-y-3 pt-2 font-courier">
+                              <h3 className="text-xs font-bold uppercase tracking-wider text-[#7a4e10] dark:text-[#D4AA50]">
                                 Uploaded Attachments ({attachments.length})
                               </h3>
                               {attachments.map((att) => {
@@ -728,7 +791,7 @@ export default function DecisionDetailPage({
                                         <div className="w-9 h-9 rounded-none bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] flex items-center justify-center text-[#7a4e10] dark:text-[#D4AA50] font-bold shrink-0">
                                           <FileText className="w-4 h-4" />
                                         </div>
-                                        <div className="min-w-0 font-courier">
+                                        <div className="min-w-0">
                                           <p className="text-sm font-bold text-[#1d1d1b] dark:text-[#F0EAE1] truncate">
                                             {att.original_name}
                                           </p>
@@ -742,7 +805,7 @@ export default function DecisionDetailPage({
                                         </div>
                                       </div>
 
-                                      <div className="flex items-center gap-2 shrink-0 font-courier">
+                                      <div className="flex items-center gap-2 shrink-0">
                                         <button
                                           type="button"
                                           onClick={() => setExpandedAttachmentId(isExpanded ? null : att.id)}
@@ -802,39 +865,24 @@ export default function DecisionDetailPage({
                               })}
                             </div>
                           )}
-                        </div>
-                      )}
 
-                      {/* Active Panel 3: Voice & Call Sync */}
-                      {(ingestionTab === "voice" || ingestionTab === "meeting") && (
-                        <div className="space-y-4 animate-in fade-in duration-150 font-courier">
-                          <div className="flex items-center gap-2 border-b border-[#cfc7b2] dark:border-[#38332C] pb-3">
-                            <button
-                              type="button"
-                              onClick={() => setIngestionTab("voice")}
-                              className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-none cursor-pointer transition-colors ${
-                                ingestionTab === "voice"
-                                  ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614]"
-                                  : "text-[#4f4b40] hover:text-[#1d1d1b] dark:text-[#A89F91] dark:hover:text-[#F0EAE1] bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C]"
-                              }`}
-                            >
-                              Voice Memo & Audio Upload
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setIngestionTab("meeting")}
-                              className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-none cursor-pointer transition-colors ${
-                                ingestionTab === "meeting"
-                                  ? "bg-[#1d1d1b] text-[#F4F0E6] dark:bg-[#D4AA50] dark:text-[#181614]"
-                                  : "text-[#4f4b40] hover:text-[#1d1d1b] dark:text-[#A89F91] dark:hover:text-[#F0EAE1] bg-[#F4F0E6] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C]"
-                              }`}
-                            >
-                              Live Call & Anonymous Scribe
-                            </button>
-                          </div>
+                          {/* Collapsible Voice Recorder Section */}
+                          {showVoiceRecorder && (
+                            <div className="p-4 bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] rounded-none space-y-4 animate-in fade-in duration-150 font-courier">
+                              <div className="flex items-center justify-between pb-2 border-b border-[#cfc7b2]/60 dark:border-[#38332C]/60">
+                                <span className="text-xs font-bold uppercase tracking-wider text-[#7a4e10] dark:text-[#D4AA50] flex items-center gap-1.5">
+                                  <Mic className="w-3.5 h-3.5" />
+                                  Spoken Audio Recording & Transcription
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowVoiceRecorder(false)}
+                                  className="text-xs text-[#6e655a] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1]"
+                                >
+                                  Close
+                                </button>
+                              </div>
 
-                          {ingestionTab === "voice" ? (
-                            <div className="space-y-4">
                               <AudioRecorder
                                 decisionId={decisionId}
                                 initialLanguage={decision.language || "en"}
@@ -866,38 +914,6 @@ export default function DecisionDetailPage({
                                 />
                               </div>
                             </div>
-                          ) : (
-                            <LiveMeetingRoom
-                              decisionId={decisionId}
-                              decisionTitle={title || decision.title}
-                              recordType={recordType}
-                              onFinishMeeting={async (data) => {
-                                if (data && data.transcript && data.transcript.trim()) {
-                                  try {
-                                    await updateTranscript(decisionId, data.transcript.trim(), true);
-                                  } catch (err) {
-                                    console.warn("Could not save live transcript:", err);
-                                  }
-                                }
-                                if (data && data.notes && data.notes.length > 0) {
-                                  const notesSummary = data.notes
-                                    .map((n) => `[${n.category.toUpperCase()}] ${n.content} (${n.isAnonymous ? "Anonymous" : n.author})`)
-                                    .join("\n");
-                                  const updatedDesc = description
-                                    ? `${description}\n\n### Anonymous Meeting Risks & Constraints:\n${notesSummary}`
-                                    : `### Anonymous Meeting Risks & Constraints:\n${notesSummary}`;
-                                  setDescription(updatedDesc);
-                                  await updateDecision(decisionId, { description: updatedDesc });
-                                }
-                                await loadData(true);
-                                setWorkflowStage("structuring");
-                                setStageManuallySelected(true);
-                                setTimeout(() => {
-                                  const elem = document.getElementById("deep-audit-section");
-                                  if (elem) elem.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }, 150);
-                              }}
-                            />
                           )}
                         </div>
                       )}
@@ -1097,7 +1113,15 @@ export default function DecisionDetailPage({
             onToggle={() => setInspectorOpen(false)}
             currentStage={workflowStage}
             onSelectStage={handleSelectStage}
-            onSelectIngestionTab={setIngestionTab}
+            onSelectIngestionTab={(tab) => {
+              if (tab === "meeting") {
+                setIngestionTab("meeting");
+              } else {
+                setIngestionTab("context");
+                if (tab === "docs") setShowSpecsUploader(true);
+                if (tab === "voice") setShowVoiceRecorder(true);
+              }
+            }}
           />
         </div>
       ) : null}

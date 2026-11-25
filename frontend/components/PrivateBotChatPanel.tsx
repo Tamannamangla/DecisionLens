@@ -27,6 +27,7 @@ interface PrivateBotChatPanelProps {
 }
 
 const PRESET_ROLES = [
+  "Decision Owner / Executive",
   "Lead Architect",
   "DevOps / SRE",
   "Backend Engineer",
@@ -36,7 +37,6 @@ const PRESET_ROLES = [
   "Product Manager",
   "FinOps / Finance",
   "Data Platform",
-  "Executive / VP",
 ];
 
 const CATEGORIES = [
@@ -115,16 +115,15 @@ export default function PrivateBotChatPanel({
 
   return (
     <div className="flex flex-col h-full bg-[#FCFBF8] dark:bg-[#181614] border border-[#cfc7b2] dark:border-[#38332C] rounded-sm shadow-xs font-courier">
-      {/* Privacy Notice Banner */}
+      {/* Project Evidence Banner */}
       <div className="p-3.5 bg-[#EDE7D6] dark:bg-[#221F1C] border-b border-[#cfc7b2] dark:border-[#38332C] flex items-start gap-2.5">
         <Shield className="w-4 h-4 text-[#7a4e10] dark:text-[#D4AA50] shrink-0 mt-0.5" />
         <div className="text-[13px] leading-snug">
           <span className="font-bold text-[#7a4e10] dark:text-[#D4AA50] uppercase tracking-wider block">
-            Psychological Safety Portal • 100% Confidential
+            Direct Project Disclosures & Evidence (Decision #{decisionId})
           </span>
           <p className="text-[#6e655a] dark:text-[#A89F91] text-[12px] mt-0.5">
-            Share private facts, hidden concerns, or dissenting opinions directly with the DecisionLens bot.
-            The bot will weigh your input into the fault lines and risk analysis without ever revealing your identity.
+            Disclosures submitted here are stored directly on the decision project record and feed into Stage 2 & 3 cognitive structuring. Messages are NOT personal DMs to the CEO or any individual attendee.
           </p>
         </div>
       </div>

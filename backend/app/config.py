@@ -18,8 +18,8 @@ class Settings(BaseSettings):
     # Frontend URL for OAuth redirects, CORS and client links
     frontend_url: str = "https://ais-dev-cdsjf4nyu3rxyb5jai7lo3-899172124060.asia-northeast1.run.app"
 
-    # Database
-    database_url: str = "sqlite:///./decisionlens.db"
+    # Database (Supabase Cloud PostgreSQL)
+    database_url: str = "postgresql://postgres.fzqlmmdfiiwaqawygkyf:DecisionLens123$@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
 
     # Storage
     storage_dir: str = "./storage"
