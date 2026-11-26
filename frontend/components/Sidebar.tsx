@@ -243,13 +243,13 @@ export default function Sidebar({
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Header: Antique Magnifying Lens Logo + Actions */}
-        <div className="h-14 px-4 border-b border-[#cfc7b2] dark:border-[#38332C] flex items-center justify-between shrink-0 bg-[#E5DEC9] dark:bg-[#1C1917]">
-          <div className="flex items-center gap-2.5 overflow-hidden">
+        <div className="h-14 px-3.5 border-b border-[#cfc7b2] dark:border-[#38332C] flex items-center justify-between shrink-0 bg-[#E5DEC9] dark:bg-[#1C1917]">
+          <div className="flex items-center gap-2 min-w-0">
             <BrandLogo
               href="/dashboard"
               theme={theme}
               showWordmark={isExpanded}
-              iconSizeClass="w-[44px] h-[44px]"
+              iconSizeClass="w-8 h-8"
             />
           </div>
 

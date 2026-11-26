@@ -18,7 +18,7 @@ export default function BrandLogo({
   theme: propTheme,
   href = "/",
   showWordmark = true,
-  iconSizeClass = "w-9 h-9",
+  iconSizeClass = "w-8 h-8",
 }: BrandLogoProps) {
   const context = useTheme();
   const theme = propTheme || context.theme || "light";
@@ -32,18 +32,18 @@ export default function BrandLogo({
       aria-label="DecisionLens Home"
     >
       <div className={`${iconSizeClass} flex-shrink-0 flex items-center justify-center transition-transform duration-300 ease-out group-hover:scale-[1.05]`}>
-        <DecisionLensIcon size={36} />
+        <DecisionLensIcon size={32} />
       </div>
 
       {showWordmark && (
-        <div className="flex flex-col">
+        <div className="flex flex-col justify-center min-w-0">
           <span
-            className="font-newsreader text-[20px] sm:text-[22px] font-medium tracking-tight leading-none transition-colors"
+            className="font-newsreader text-[18px] sm:text-[19px] font-semibold tracking-tight leading-snug whitespace-nowrap transition-colors"
             style={{ color: inkPrimary }}
           >
             DecisionLens<span className="text-[#b4874b] dark:text-[#FBBF24]">.</span>
           </span>
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-widest text-[#9E7D47] dark:text-[#D4AA50] mt-0.5">
+          <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-[#9E7D47] dark:text-[#D4AA50] whitespace-nowrap leading-none mt-0.5">
             Executive Cognitive
           </span>
         </div>
