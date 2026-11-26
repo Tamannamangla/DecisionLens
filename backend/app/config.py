@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 720
 
     # Frontend URL for OAuth redirects, CORS and client links
-    frontend_url: str = "https://ais-dev-cdsjf4nyu3rxyb5jai7lo3-899172124060.asia-northeast1.run.app"
+    frontend_url: str = "http://localhost:3000"
 
     # Database (Supabase Cloud PostgreSQL)
     database_url: str = "postgresql://postgres.fzqlmmdfiiwaqawygkyf:DecisionLens123$@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"

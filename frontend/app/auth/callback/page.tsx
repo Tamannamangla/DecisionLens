@@ -105,9 +105,16 @@ function CallbackHandler() {
 
         if (isMounted) {
           setStatus("success");
+          const destUrl =
+            (typeof window !== "undefined" && sessionStorage.getItem("auth_redirect")) ||
+            "/dashboard";
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("auth_redirect");
+            sessionStorage.removeItem("oauth_provider");
+          }
           setTimeout(() => {
-            router.replace("/dashboard");
-          }, 800);
+            window.location.href = destUrl;
+          }, 600);
         }
       } catch (err: unknown) {
         if (isMounted) {
