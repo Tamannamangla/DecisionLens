@@ -243,41 +243,55 @@ export default function Sidebar({
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
         {/* Header: Antique Magnifying Lens Logo + Actions */}
-        <div className="h-14 px-3.5 border-b border-[#cfc7b2] dark:border-[#38332C] flex items-center justify-between shrink-0 bg-[#E5DEC9] dark:bg-[#1C1917]">
-          <div className="flex items-center gap-2 min-w-0">
-            <BrandLogo
-              href="/dashboard"
-              theme={theme}
-              showWordmark={isExpanded}
-              iconSizeClass="w-8 h-8"
-            />
-          </div>
+        <div className="h-14 px-3 border-b border-[#cfc7b2] dark:border-[#38332C] flex items-center justify-between shrink-0 bg-[#E5DEC9] dark:bg-[#1C1917]">
+          {collapsed ? (
+            <div className="w-full flex items-center justify-center">
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                className="w-10 h-10 flex items-center justify-center rounded-[4px] text-[#4f4b40] dark:text-[#A89F91] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1] hover:bg-[#cfc7b2]/60 dark:hover:bg-[#38332C]/70 active:scale-95 transition-all group"
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+              >
+                <ChevronRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5 text-[#1d1d1b] dark:text-[#F0EAE1]" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <BrandLogo
+                  href="/dashboard"
+                  theme={theme}
+                  showWordmark={true}
+                  iconSizeClass="w-8 h-8"
+                />
+              </div>
 
-          {/* Desktop collapse toggle */}
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-[4px] text-[#4f4b40] dark:text-[#A89F91] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1] hover:bg-[#cfc7b2]/50 dark:hover:bg-[#38332C]/60 transition-colors"
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {collapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </button>
+              <div className="flex items-center gap-1 shrink-0">
+                {/* Desktop collapse toggle */}
+                <button
+                  type="button"
+                  onClick={toggleCollapsed}
+                  className="hidden lg:flex items-center justify-center w-7 h-7 rounded-[4px] text-[#4f4b40] dark:text-[#A89F91] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1] hover:bg-[#cfc7b2]/50 dark:hover:bg-[#38332C]/60 transition-colors"
+                  title="Collapse sidebar"
+                  aria-label="Collapse sidebar"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-          {/* Mobile close button */}
-          <button
-            type="button"
-            onClick={closeMobile}
-            className="lg:hidden flex items-center justify-center w-8 h-8 rounded-[4px] text-[#4f4b40] dark:text-[#A89F91] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1] hover:bg-[#cfc7b2]/50 dark:hover:bg-[#38332C]/50 active:scale-95 transition-all"
-            title="Close sidebar"
-            aria-label="Close sidebar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+                {/* Mobile close button */}
+                <button
+                  type="button"
+                  onClick={closeMobile}
+                  className="lg:hidden flex items-center justify-center w-8 h-8 rounded-[4px] text-[#4f4b40] dark:text-[#A89F91] hover:text-[#1d1d1b] dark:hover:text-[#F0EAE1] hover:bg-[#cfc7b2]/50 dark:hover:bg-[#38332C]/50 active:scale-95 transition-all"
+                  title="Close sidebar"
+                  aria-label="Close sidebar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Action Button: Single Primary Action */}

@@ -135,12 +135,19 @@ export default function AppShell({
         <header className="sticky top-0 z-30 bg-[#F4F0E6]/95 dark:bg-[#181614]/95 backdrop-blur-xs border-b border-[#cfc7b2] dark:border-[#38332C] px-4 sm:px-6 h-14 flex items-center justify-between transition-colors duration-200">
           {/* Left: Mobile Menu & Breadcrumbs */}
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            {/* Mobile Hamburger Button */}
+            {/* Sidebar Toggle Button (Opens mobile drawer on mobile; toggles collapse on desktop) */}
             <button
               type="button"
-              onClick={() => setMobileOpen(true)}
-              className="lg:hidden w-8 h-8 flex items-center justify-center text-[#1d1d1b] dark:text-[#F0EAE1] bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] hover:bg-[#E5DEC9] dark:hover:bg-[#2A2622] active:bg-[#cfc7b2]/60 rounded-[4px] transition-colors shrink-0 shadow-2xs"
-              aria-label="Open navigation sidebar"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                  setMobileOpen((prev) => !prev);
+                } else {
+                  handleToggleCollapse();
+                }
+              }}
+              className="w-8 h-8 flex items-center justify-center text-[#1d1d1b] dark:text-[#F0EAE1] bg-[#EDE7D6] dark:bg-[#221F1C] border border-[#cfc7b2] dark:border-[#38332C] hover:bg-[#E5DEC9] dark:hover:bg-[#2A2622] active:bg-[#cfc7b2]/60 rounded-[4px] transition-colors shrink-0 shadow-2xs"
+              title={collapsed ? "Expand sidebar" : "Toggle sidebar"}
+              aria-label="Toggle navigation sidebar"
             >
               <Menu className="w-4 h-4" />
             </button>
